@@ -1,0 +1,9 @@
+---
+- name: Add mappings to /etc/hosts
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    block: |
+      {% for host in groups['all'] %}
+      {{ hostvars[host]['ansible_host'] }} {{ hostvars[host]['inventory_hostname'] }}
+      {% endfor %}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"

@@ -1,0 +1,17 @@
+---
+- name: Create proxmox_exporter directory
+  ansible.builtin.file:
+    dest: /opt/monitoring/proxmox_exporter
+    state: directory
+    owner: root
+    mode: "0755"
+
+- name: Deploy proxmox_exporter via docker-compose
+  ansible.builtin.template:
+    src: opt/monitoring/proxmox_exporter/docker-compose.yml
+    dest: /opt/monitoring/proxmox_exporter/docker-compose.yml
+    owner: root
+    group: admin
+    mode: "0755"
+  notify:
+    - Restart docker-compose proxmox_exporter

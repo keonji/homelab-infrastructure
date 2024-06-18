@@ -1,0 +1,7 @@
+---
+- name: Ensure proxmox_exporter is up-to-date
+  community.docker.docker_compose_v2:
+    project_src: /opt/monitoring/proxmox_exporter
+    state: present
+    pull: always
+    recreate: always

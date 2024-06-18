@@ -1,0 +1,19 @@
+---
+- name: Proxmox_nginx test nginx configuration
+  ansible.builtin.command:
+    cmd: nginx -t
+  register: nginx_test
+  changed_when: false
+  notify:
+    - Proxmox_nginx reload nginx
+
+- name: Proxmox_nginx reload nginx
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+  when: nginx_test.rc == 0
+
+- name: Proxmox_nginx systemctl daemon-reload
+  ansible.builtin.systemd:
+    daemon_reload: true
+  changed_when: false

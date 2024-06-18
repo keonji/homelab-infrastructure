@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  proxmox-exporter:
+    container_name: prometheus-pve-exporter
+    image: prompve/prometheus-pve-exporter:3.2.2
+    restart: always
+    ports:
+      - "9221:9221"
+    environment:
+      PVE_USER: 'monitoring@pve'
+      PVE_PASSWORD: '{{ vault_proxmox_monitoring_password }}'
+      PVE_VERIFY_SSL: 'false'
+      PYTHONWARNINGS: ignore
+    expose:
+      - 9221
+networks:
+  default:
+    external:
+      name: monitoring

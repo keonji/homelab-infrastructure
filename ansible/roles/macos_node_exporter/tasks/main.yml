@@ -1,0 +1,17 @@
+---
+# /usr/local/etc/node_exporter.args - path to config file
+- name: Install node_export
+  community.general.homebrew:
+    name: node_exporter
+    state: present
+    update_homebrew: true
+  become: true
+  become_user: emlid
+
+- name: Start node_exporter service
+  ansible.builtin.shell: |
+    export HOMEBREW_NO_INSTALL_FROM_API=1
+    /usr/local/bin/brew services start node_exporter
+  args:
+    chdir: /Users/emlid
+    creates: /Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist

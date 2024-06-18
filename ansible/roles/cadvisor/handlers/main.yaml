@@ -1,0 +1,14 @@
+---
+- name: Restart docker-compose cadvisor (macOS)
+  community.docker.docker_compose_v2:
+    project_src: /opt/cadvisor
+    state: present
+    recreate: always
+  when: ansible_os_family == "Darwin"
+
+- name: Restart docker-compose cadvisor (Ubuntu)
+  community.docker.docker_compose_v2:
+    project_src: /opt/cadvisor
+    state: present
+    recreate: always
+  when: ansible_os_family == "Debian"

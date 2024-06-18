@@ -1,0 +1,6 @@
+---
+add_root_ssh_keys:
+  - key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN+6F2i93iNEf25qCpwX5XZhGQJv554WGXAA659i0cZk pavel.shapovalov"
+    servers: ["all"]
+
+delete_root_ssh_keys: []

@@ -1,0 +1,9 @@
+---
+- name: Systemctl daemon-reload node-exporter
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart node_exporter service
+  ansible.builtin.service:
+    name: node_exporter
+    state: restarted

@@ -1,0 +1,43 @@
+---
+- name: Update cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Apt install nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: Remove default sites-enabled/default
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Copy nginx proxmox.conf file
+  ansible.builtin.template:
+    src: etc/nginx/conf.d/proxmox.conf
+    dest: /etc/nginx/conf.d/proxmox.conf
+    owner: root
+    group: root
+    mode: "0755"
+  notify:
+    - Proxmox_nginx test nginx configuration
+
+- name: Create nginx systemd unit folder
+  ansible.builtin.file:
+    path: /etc/systemd/system/nginx.service.d
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+
+- name: Copy nginx systemd unit additional configs
+  ansible.builtin.template:
+    src: etc/systemd/system/nginx.service.d/nginx.conf
+    dest: /etc/systemd/system/nginx.service.d/nginx.conf
+    owner: root
+    group: root
+    mode: "0755"
+  notify:
+    - Proxmox_nginx systemctl daemon-reload

@@ -1,0 +1,17 @@
+---
+- name: Create cadvisor directory
+  ansible.builtin.file:
+    dest: /opt/cadvisor
+    state: directory
+    owner: root
+    mode: "0755"
+
+- name: Copy cadvisor docker-compose file
+  ansible.builtin.template:
+    src: opt/cadvisor/docker-compose.yml
+    dest: /opt/cadvisor/docker-compose.yml
+    owner: root
+    mode: "0755"
+  notify:
+    - Restart docker-compose cadvisor(macos)
+    - Restart docker-compose cadvisor(ubuntu)

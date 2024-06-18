@@ -1,0 +1,29 @@
+---
+- hosts: hypervisor[0],pi,vinux-vm
+  roles:
+    - { role: ssh_root_key, tags: ssh_root_key }
+
+- hosts: hypervisor
+  roles:
+    - { role: disable_proxmox_private_repos, tags: disable_proxmox_private_repos }
+    - { role: linux_node_exporter, tags: linux_node_exporter }
+    - { role: proxmox_nginx, tags: proxmox_nginx }
+    - { role: proxmox_user_role, tags: proxmox_user_role }
+    - { role: linux_common, tags: linux_common }
+
+- hosts: pi
+  roles:
+    - { role: etc_hosts, tags: etc_hosts }
+#    - { role: monitoring, tags: monitoring }
+    - { role: proxmox_exporter, tags: proxmox_exporter }
+    - { role: cadvisor, tags: cadvisor }
+
+- hosts: macos
+  roles:
+    - { role: macos_node_exporter, tags: macos_node_exporter }
+
+- hosts: linux_vm
+  roles:
+    - { role: linux_common, tags: linux_common }
+    - { role: linux_node_exporter, tags: linux_node_exporter }
+    - { role: docker_install, tags: docker_install }
