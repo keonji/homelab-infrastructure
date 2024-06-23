@@ -1,17 +1,37 @@
 ---
 # /usr/local/etc/node_exporter.args - path to config file
+- name: Set fact for Apple Silicon
+  ansible.builtin.set_fact:
+    brew_location: "/opt/homebrew"
+  when: ansible_architecture  == "arm64"
+
+- name: Set fact for Intel
+  ansible.builtin.set_fact:
+    brew_location: "/usr/local"
+  when: ansible_architecture  == "x86_64"
+
 - name: Install node_export
   community.general.homebrew:
     name: node_exporter
     state: present
     update_homebrew: true
   become: true
-  become_user: emlid
+  become_user: "{{ vault_macos_user }}"
+
+- name: Check if node_exporter service is running
+  ansible.builtin.command: "{{ brew_location }}/bin/brew services list | grep node_exporter | grep started"
+  register: brew_services_list
+  changed_when: false
+  failed_when: false
 
 - name: Start node_exporter service
   ansible.builtin.shell: |
     export HOMEBREW_NO_INSTALL_FROM_API=1
-    /usr/local/bin/brew services start node_exporter
+    {{ brew_location }}/bin/brew services start node_exporter
   args:
-    chdir: /Users/emlid
-    creates: /Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist
+    chdir: /Users/{{ vault_macos_user }}
+    creates: "/Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist"
+  become: true
+  become_user: "{{ vault_macos_user }}"
+  when: brew_services_list.stdout == ""
+  changed_when: true

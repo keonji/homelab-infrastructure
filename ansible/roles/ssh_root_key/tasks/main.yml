@@ -1,7 +1,17 @@
 ---
-- name: Add authorized keys for root
+- name: Set fact for MacOS
+  ansible.builtin.set_fact:
+    user_name: "{{ vault_macos_user }}"
+  when: ansible_os_family == "Darwin"
+
+- name: Set fact for Ubuntu
+  ansible.builtin.set_fact:
+    user_name: "root"
+  when: ansible_os_family == "Debian"
+
+- name: Add authorized keys
   ansible.posix.authorized_key:
-    user: root
+    user: "{{ user_name }}"
     state: present
     key: "{{ item.key }}"
     follow: true
@@ -10,7 +20,7 @@
 
 - name: Delete old ssh-keys
   ansible.posix.authorized_key:
-    user: root
+    user: "{{ user_name }}"
     key: "{{ item }}"
     state: absent
     follow: true
