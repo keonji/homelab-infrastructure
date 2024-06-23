@@ -1,0 +1,7 @@
+---
+- hosts: macos
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  roles:
+    - { role: macos_xcode_clt, tags: macos_xcode_clt }
