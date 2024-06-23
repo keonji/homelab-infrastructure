@@ -1,5 +1,5 @@
 ---
-- hosts: hypervisor[0],pi,vinux-vm
+- hosts: all
   roles:
     - { role: ssh_root_key, tags: ssh_root_key }
 
@@ -20,6 +20,7 @@
 
 - hosts: macos
   roles:
+    - { role: macos_brew_install, tags: macos_brew_install }
     - { role: macos_node_exporter, tags: macos_node_exporter }
 
 - hosts: linux_vm

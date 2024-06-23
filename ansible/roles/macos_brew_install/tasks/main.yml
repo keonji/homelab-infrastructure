@@ -1,0 +1,44 @@
+---
+- name: Set fact for Apple Silicon
+  ansible.builtin.set_fact:
+    brew_location: "/opt/homebrew"
+  when: ansible_architecture  == "arm64"
+
+- name: Set fact for Intel
+  ansible.builtin.set_fact:
+    brew_location: "/usr/local"
+  when: ansible_architecture  == "x86_64"
+
+- name: Check if Homebrew is installed
+  ansible.builtin.command: "{{ brew_location }}/bin/brew --version"
+  register: brew_version
+  ignore_errors: true
+  changed_when: false
+
+- name: Download Homebrew pkg
+  ansible.builtin.get_url:
+    url: https://github.com/Homebrew/brew/releases/download/{{ macos_brew_install_version }}/Homebrew-{{ macos_brew_install_version }}.pkg
+    dest: /tmp/Homebrew-{{ macos_brew_install_version }}.pkg
+    mode: '0644'
+    force: false
+  register: brew_downloaded
+  when: brew_version.rc != 0
+  changed_when: true
+
+- name: Install Homebrew if not installed
+  ansible.builtin.command: installer -pkg /tmp/Homebrew-{{ macos_brew_install_version }}.pkg -target /
+  args:
+    creates: "{{ brew_location }}/bin/brew"
+  when: brew_version.rc != 0
+  changed_when: true
+
+- name: Remove Homebrew pkg
+  ansible.builtin.file:
+    path: /tmp/Homebrew-{{ macos_brew_install_version }}.pkg
+    state: absent
+
+- name: Add Homebrew to PATH if not already present
+  ansible.builtin.lineinfile:
+    path: /etc/paths
+    line: "{{ brew_location }}/bin"
+    state: present
