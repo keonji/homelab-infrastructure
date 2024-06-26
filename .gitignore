@@ -15,6 +15,7 @@
 *.sln.docstates
 .terraform*
 terraform.tfstate*
+plan
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
