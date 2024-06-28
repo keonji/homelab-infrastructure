@@ -1,5 +1,5 @@
 ---
-linux_node_exporter_version: 1.5.0
+linux_node_exporter_version: 1.8.1
 linux_node_exporter_source_url: "https://github.com/prometheus/node_exporter/releases/download/v\
  {{ linux_node_exporter_version }}/node_exporter-{{ linux_node_exporter_version }}.linux-amd64.tar.gz"
 linux_node_exporter_bin: /usr/local/bin/node_exporter
