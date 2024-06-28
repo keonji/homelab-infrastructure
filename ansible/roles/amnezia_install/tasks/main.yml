@@ -1,0 +1,169 @@
+---
+- name: Install go
+  community.general.snap:
+    name: go
+    classic: true
+
+- name: Install prerequesties
+  ansible.builtin.apt:
+    name:
+      - wireguard-tools
+      - make
+      - gcc
+      - iptables-persistent
+    state: present
+
+- name: Ensure net.ipv4.ip_forward is enabled
+  ansible.builtin.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+    reload: true
+
+- name: Check if amneziawg-go is available
+  ansible.builtin.command: which amneziawg-go
+  register: amnezia_check
+  changed_when: false
+  failed_when: false
+
+- name: Install AmnesiaWG-go
+  when: amnezia_check.rc != 0
+  block:
+    - name: Clone AmnesiaWG repository
+      ansible.builtin.git:
+        repo: "{{ amnezia_install_repo_go }}"
+        dest: "{{ amnezia_install_dir_go }}"
+        version: master
+
+    - name: Build AmnesiaWG-go
+      ansible.builtin.command: make
+      args:
+        chdir: "{{ amnezia_install_dir_go }}/"
+        creates: "{{ amnezia_install_dir_go }}/amneziawg-go"
+
+    - name: Install AmnesiaWG-go
+      ansible.builtin.command: make install
+      args:
+        chdir: "{{ amnezia_install_dir_go }}/"
+        creates: "/usr/bin/amneziawg-go"
+
+    - name: Clean up temporary files
+      ansible.builtin.file:
+        path: "{{ amnezia_install_dir_go }}"
+        state: absent
+
+- name: Check if amnezia-tools is available
+  ansible.builtin.command: which awg
+  register: amnezia_tools_check
+  changed_when: false
+  failed_when: false
+
+- name: Install AmnesiaWG-Tools
+  when: amnezia_tools_check.rc != 0
+  block:
+    - name: Clone AmnesiaWG repository
+      ansible.builtin.git:
+        repo: "{{ amnezia_install_repo_tools }}"
+        dest: "{{ amnezia_install_dir_tools }}"
+        version: master
+
+    - name: Build AmnesiaWG-tools
+      ansible.builtin.command: make
+      args:
+        chdir: "{{ amnezia_install_dir_tools }}/src/"
+        creates: "{{ amnezia_install_dir_tools }}/awg"
+
+    - name: Install AmnesiaWG-tools
+      ansible.builtin.command: make install
+      args:
+        chdir: "{{ amnezia_install_dir_tools }}/src/"
+        creates: "/usr/bin/awg"
+
+    - name: Clean up temporary files
+      ansible.builtin.file:
+        path: "{{ amnezia_install_dir_tools }}"
+        state: absent
+
+- name: Copy file awg.conf
+  ansible.builtin.copy:
+    dest: /etc/amnezia/amneziawg/awg.conf
+    content: "{{ vault_awg_content }}"
+    owner: root
+    group: root
+    mode: '0600'
+  notify:
+    - Restart awg interface
+
+- name: Check if awg interface exists
+  ansible.builtin.command: ip link show awg
+  register: awg_interface
+  ignore_errors: true
+  changed_when: false
+
+- name: Enable awg-quick@awg service
+  ansible.builtin.systemd:
+    name: awg-quick@awg
+    enabled: true
+    state: started
+  when: awg_interface.failed
+
+- name: Create WireGuard configuration directory
+  ansible.builtin.file:
+    path: "/etc/wireguard"
+    state: directory
+    mode: '0755'
+
+- name: Copy file wg0.conf
+  ansible.builtin.copy:
+    dest: /etc/wireguard/wg0.conf
+    content: "{{ vault_wg_content }}"
+    owner: root
+    group: root
+    mode: '0600'
+  notify:
+    - Restart wg0 interface
+
+- name: Check if wg0 interface exists
+  ansible.builtin.command: ip link show wg0
+  register: wg_interface
+  ignore_errors: true
+  changed_when: false
+
+- name: Enable wg-quick@wg0 service
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    enabled: true
+    state: started
+  when: wg_interface.failed
+
+- name: Set up NAT rule
+  ansible.builtin.iptables:
+    table: nat
+    chain: POSTROUTING
+    out_interface: "awg"
+    jump: MASQUERADE
+
+- name: Set up forwarding rule (incoming)
+  ansible.builtin.iptables:
+    chain: FORWARD
+    in_interface: "wg0"
+    out_interface: "awg"
+    jump: ACCEPT
+
+- name: Set up forwarding rule (outgoing)
+  ansible.builtin.iptables:
+    chain: FORWARD
+    in_interface: "awg"
+    out_interface: "wg0"
+    ctstate: RELATED,ESTABLISHED
+    jump: ACCEPT
+
+- name: Save iptables rules
+  ansible.builtin.command: netfilter-persistent save
+  changed_when: true
+
+- name: Ensure netfilter-persistent starts on boot
+  ansible.builtin.service:
+    name: netfilter-persistent
+    enabled: true
+    state: started

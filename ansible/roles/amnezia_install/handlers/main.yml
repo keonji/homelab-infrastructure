@@ -1,0 +1,10 @@
+---
+- name: Restart awg interface
+  ansible.builtin.systemd:
+    name: awg-quick@awg
+    state: restarted
+
+- name: Restart wg0 interface
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    state: restarted

@@ -28,3 +28,7 @@
     - { role: linux_common, tags: linux_common }
     - { role: linux_node_exporter, tags: linux_node_exporter }
     - { role: docker_install, tags: docker_install }
+
+- hosts: wireguard
+  roles:
+    - { role: amnezia_install, tags: amnnzia_install }
