@@ -22,6 +22,7 @@
   roles:
     - { role: macos_brew_install, tags: macos_brew_install }
     - { role: macos_node_exporter, tags: macos_node_exporter }
+    - { role: macos_env, tags: macos_env }
 
 - hosts: linux_vm
   roles:
