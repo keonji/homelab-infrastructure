@@ -1,73 +1,21 @@
 ---
-- name: Enable jammy repositories
+- name: Enable amnezia repositories
   ansible.builtin.apt_repository:
-    repo: "{{ item.repo }}" # We must use jammy repos to install amneziawg kernel module
+    repo: "{{ item.repo }}"
     state: present
     update_cache: true
   loop:
-    - repo: ppa:amnezia/ppa
-    - repo: deb https://ppa.launchpadcontent.net/amnezia/ppa/ubuntu jammy main
-    - repo: deb-src https://ppa.launchpadcontent.net/amnezia/ppa/ubuntu jammy main
-    - repo: |
-        deb-src [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://security.ubuntu.com/ubuntu jammy-security main restricted
-    - repo: |
-        deb-src [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://security.ubuntu.com/ubuntu jammy-security universe
-    - repo: |
-        deb-src [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://security.ubuntu.com/ubuntu jammy-security multiverse
-    - repo: |
-        deb-src [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy main restricted
-    - repo: |
-        deb-src [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy universe
-    - repo: |
-        deb-src [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy multiverse
-    - repo: |
-        deb-src [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy-updates main restricted
-    - repo: |
-        deb-src [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy-updates universe
-    - repo: |
-        deb-src [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy-updates multiverse
-    - repo: |
-        deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://security.ubuntu.com/ubuntu jammy-security main restricted
-    - repo: |
-        deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://security.ubuntu.com/ubuntu jammy-security universe
-    - repo: |
-        deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://security.ubuntu.com/ubuntu jammy-security multiverse
-    - repo: |
-        deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy main restricted
-    - repo: |
-        deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy universe
-    - repo: |
-        deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy multiverse
-    - repo: |
-        deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy-updates main restricted
-    - repo: |
-        deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy-updates universe
-    - repo: |
-        deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg]
-        http://archive.ubuntu.com/ubuntu jammy-updates multiverse
+    - repo: deb https://ppa.launchpadcontent.net/amnezia/ppa/ubuntu {{ ansible_distribution_release }} main
+    - repo: deb-src https://ppa.launchpadcontent.net/amnezia/ppa/ubuntu {{ ansible_distribution_release }} main
 
 - name: Install prerequesties
   ansible.builtin.apt:
     name:
+      - software-properties-common
+      - python3-launchpadlib
+      - gnupg2
       - wireguard-tools
-      - amneziawg/jammy
+      - amneziawg
       - resolvconf
     state: present
 
