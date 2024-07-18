@@ -1,0 +1,4 @@
+---
+domain_name: cloud.pavelshapovalov.ru
+email: keonji2012@gmail.com
+certbot_auto_renew: true

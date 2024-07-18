@@ -1,0 +1,32 @@
+---
+- name: Install dependencies
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - software-properties-common
+    - certbot
+    - python3-certbot-nginx
+
+- name: Generate SSL certificate
+  ansible.builtin.command: >
+    certbot certonly --nginx
+    --non-interactive
+    --agree-tos
+    --email {{ email }}
+    -d {{ domain_name }}
+  when: certbot_auto_renew
+
+- name: Create renewal hook script
+  ansible.builtin.template:
+    src: renewal-hooks.j2
+    dest: /etc/letsencrypt/renewal-hooks/deploy/reload_nginx.sh
+    mode: 0755
+
+- name: Create cron job for auto renewal
+  ansible.builtin.cron:
+    name: "Certbot auto renewal"
+    job: "certbot renew --quiet --renew-hook 'systemctl reload nginx'"
+    minute: 0
+    hour: 0
+  when: certbot_auto_renew
