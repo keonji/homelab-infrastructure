@@ -1,7 +1,7 @@
-module "vm-nextcloud" {
-  source      = "../modules/vm"
+module "vm-synology" {
+  source      = "../modules/synology"
   vmid        = 100
-  name        = "vm-nextcloud"
+  name        = "vm-synology"
   target_node = "proxmox"
   cores       = 4
   memory      = 16 * 1024
