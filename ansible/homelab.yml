@@ -33,4 +33,4 @@
 
 - hosts: wireguard
   roles:
-    - { role: amnezia_install, tags: amnnzia_install }
+    - { role: amnezia_install, tags: amnezia_install }

@@ -13,15 +13,16 @@
     certbot certonly --nginx
     --non-interactive
     --agree-tos
-    --email {{ email }}
-    -d {{ domain_name }}
-  when: certbot_auto_renew
+    --email {{ proxmox_ssl_email }}
+    -d {{ proxmox_ssl_domain_name }}
+  when: proxmox_ssl_certbot_auto_renew
+  changed_when: true
 
 - name: Create renewal hook script
   ansible.builtin.template:
     src: renewal-hooks.j2
     dest: /etc/letsencrypt/renewal-hooks/deploy/reload_nginx.sh
-    mode: 0755
+    mode: "0755"
 
 - name: Create cron job for auto renewal
   ansible.builtin.cron:
@@ -29,4 +30,4 @@
     job: "certbot renew --quiet --renew-hook 'systemctl reload nginx'"
     minute: 0
     hour: 0
-  when: certbot_auto_renew
+  when: proxmox_ssl_certbot_auto_renew
