@@ -8,7 +8,7 @@
     - { role: disable_proxmox_private_repos, tags: disable_proxmox_private_repos }
     - { role: linux_node_exporter, tags: linux_node_exporter }
     - { role: proxmox_nginx, tags: proxmox_nginx }
-    - { role: proxmox_ssl, tags: proxmox_ssl }
+#    - { role: proxmox_ssl, tags: proxmox_ssl }
     - { role: proxmox_user_role, tags: proxmox_user_role }
     - { role: linux_common, tags: linux_common }
 
