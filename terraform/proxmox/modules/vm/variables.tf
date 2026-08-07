@@ -44,13 +44,6 @@ variable "disk_size" {
   type        = number
 }
 
-/*
-variable "ip" {
-  description = "vm ip"
-  type        = string
-}
-*/
-
 variable "cpu_type" {
   description = "cpu type"
   type        = string

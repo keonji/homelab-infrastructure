@@ -5,10 +5,6 @@ After=network-online.target
 User={{ linux_node_exporter_user }}
 Group={{ linux_node_exporter_user }}
 Type=simple
-{% if inventory_hostname in groups["linux_vm"] %}
-ExecStart={{ linux_node_exporter_bin }} --collector.systemd --collector.systemd.unit-include=".+runner.+|docker.+|rx-sign-server.+"
-{% elif inventory_hostname in groups["proxmox"] %}
 ExecStart={{ linux_node_exporter_bin }} --collector.systemd --collector.systemd.unit-include="pve.+|corosync.+"
-{% endif %}
 [Install]
 WantedBy=multi-user.target

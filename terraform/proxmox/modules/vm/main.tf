@@ -2,32 +2,30 @@ terraform {
   required_providers {
     proxmox = {
       source  = "Telmate/proxmox"
-      version = "3.0.1-rc3"
+      version = "3.0.2-rc08"
     }
-/*
-    routeros = {
-      source  = "terraform-routeros/routeros"
-      version = "1.10.4"
-    }
-*/
   }
 }
 
 resource "proxmox_vm_qemu" "vm_qemu" {
-  name        = var.name
-  clone       = var.template
-  target_node = var.target_node
-  vmid        = var.vmid
-  cores       = var.cores
-  memory      = var.memory
-  full_clone  = true
-  onboot      = true
-  cpu         = var.cpu_type
-  sockets     = 1
-  os_type     = "cloud-init"
-  qemu_os     = "l26"
-  agent       = 1
-  scsihw      = "virtio-scsi-single"
+  name               = var.name
+  clone              = var.template
+  target_node        = var.target_node
+  vmid               = var.vmid
+  memory             = var.memory
+  full_clone         = true
+  start_at_node_boot = true
+  os_type            = "cloud-init"
+  qemu_os            = "l26"
+  agent              = 1
+  scsihw             = "virtio-scsi-single"
+
+  cpu {
+    cores   = var.cores
+    sockets = 1
+    type    = var.cpu_type
+  }
+
   disks {
     ide {
       ide3 {
@@ -50,6 +48,7 @@ resource "proxmox_vm_qemu" "vm_qemu" {
     }
   }
   network {
+    id       = 0
     bridge   = "vmbr0"
     firewall = false
     macaddr  = local.macaddr
@@ -66,18 +65,3 @@ resource "proxmox_vm_qemu" "vm_qemu" {
     ]
   }
 }
-
-/*
-resource "routeros_ip_dhcp_server_lease" "dhcp_lease" {
-  address     = var.ip
-  mac_address = local.macaddr
-}
-
-resource "routeros_ip_dns_record" "dns_record" {
-  name    = "${var.name}.pavelshapovalov.ru"
-  address = var.ip
-  type    = "A"
-  comment = "VM"
-  ttl     = "1d"
-}
-*/

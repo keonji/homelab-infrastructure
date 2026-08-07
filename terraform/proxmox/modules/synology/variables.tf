@@ -33,14 +33,13 @@ variable "memory" {
   type        = number
 }
 
-variable "disk_size" {
-  description = "VM disk size(G)"
-  type        = number
+variable "boot_disk_size" {
+  description = "ARC loader boot disk size(M)"
+  type        = string
+  default     = "1852M"
 }
 
-/*
-variable "ip" {
-  description = "vm ip"
-  type        = string
+variable "disk_size" {
+  description = "VM data disk size(G)"
+  type        = number
 }
-*/

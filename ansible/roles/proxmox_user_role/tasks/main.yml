@@ -1,49 +1,56 @@
 ---
-- name: Check if Terraform role exists
-  ansible.builtin.command: pveum role list
-  register: roles_output
+- name: Get existing PVE roles
+  ansible.builtin.command: pveum role list --output-format json
+  register: pve_roles
   changed_when: false
-
-- name: Set fact if Terraform role does not exist
-  ansible.builtin.set_fact:
-    terraform_role_missing: "{{ 'Terraform' not in roles_output.stdout }}"
-  changed_when: false
+  check_mode: false
 
 - name: Create Terraform role if it does not exist
   ansible.builtin.command: >
-    pveum role add Terraform -privs "Datastore.AllocateSpace Datastore.Audit
-    Pool.Allocate Sys.Audit Sys.Console Sys.Modify VM.Allocate VM.Audit VM.Clone
-    VM.Config.CDROM VM.Config.Cloudinit VM.Config.CPU VM.Config.Disk VM.Config.HWType
-    VM.Config.Memory VM.Config.Network VM.Config.Options VM.Migrate VM.Monitor VM.PowerMgmt SDN.Use"
-  when: terraform_role_missing
+    pveum role add {{ proxmox_terraform_role }}
+    -privs "{{ proxmox_terraform_privs | join(',') }}"
+  when: proxmox_terraform_role not in (pve_roles.stdout | from_json | map(attribute='roleid') | list)
   changed_when: true
 
-- name: Check if user exists
-  ansible.builtin.command: pveum user list
-  register: users_output
-  changed_when: false
-
-- name: Set fact if user does not exist
-  ansible.builtin.set_fact:
-    user_missing: "{{ vault_proxmox_terraform_user not in users_output.stdout }}"
-  changed_when: false
-
-- name: Create user if it does not exist
-  ansible.builtin.command: pveum user add {{ vault_proxmox_terraform_user }} --password "{{ vault_proxmox_terraform_password }}"
-  when: user_missing
+- name: Sync Terraform role privileges
+  ansible.builtin.command: >
+    pveum role modify {{ proxmox_terraform_role }}
+    -privs "{{ proxmox_terraform_privs | join(',') }}"
+  vars:
+    current_privs: >-
+      {{ (pve_roles.stdout | from_json | selectattr('roleid', 'eq', proxmox_terraform_role)
+          | map(attribute='privs') | first | default('')).split(',') | reject('equalto', '') | sort }}
+  when:
+    - proxmox_terraform_role in (pve_roles.stdout | from_json | map(attribute='roleid') | list)
+    - current_privs != (proxmox_terraform_privs | sort)
   changed_when: true
 
-- name: Check if user has Terraform role
-  ansible.builtin.command: pveum acl list
-  register: acl_output
+- name: Get existing PVE users
+  ansible.builtin.command: pveum user list --output-format json
+  register: pve_users
   changed_when: false
+  check_mode: false
 
-- name: Set fact if user does not have Terraform role
-  ansible.builtin.set_fact:
-    user_missing_role: "{{ vault_proxmox_terraform_user not in acl_output.stdout }}"
+- name: Create Terraform user if it does not exist
+  ansible.builtin.command: >
+    pveum user add {{ vault_proxmox_terraform_user }}
+    --password "{{ vault_proxmox_terraform_password }}"
+  when: vault_proxmox_terraform_user not in (pve_users.stdout | from_json | map(attribute='userid') | list)
+  changed_when: true
+
+- name: Get existing ACLs
+  ansible.builtin.command: pveum acl list --output-format json
+  register: pve_acl
   changed_when: false
+  check_mode: false
 
-- name: Assign Terraform role to user
-  ansible.builtin.command: pveum aclmod / -user {{ vault_proxmox_terraform_user }} -role Terraform
-  when: user_missing_role
+- name: Assign Terraform role to the user
+  ansible.builtin.command: >
+    pveum aclmod / -user {{ vault_proxmox_terraform_user }} -role {{ proxmox_terraform_role }}
+  when: >
+    pve_acl.stdout | from_json
+    | selectattr('path', 'eq', '/')
+    | selectattr('ugid', 'eq', vault_proxmox_terraform_user)
+    | selectattr('roleid', 'eq', proxmox_terraform_role)
+    | list | length == 0
   changed_when: true
